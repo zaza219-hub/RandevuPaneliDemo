@@ -1,0 +1,110 @@
+from flask import Flask, render_template_string, request, redirect, url_for
+
+app = Flask(__name__)
+
+# Demo randevular listesi
+appointments = [
+    {'name': 'Ali Y.', 'date': '2026-03-05', 'time': '10:00'},
+    {'name': 'Ayşe K.', 'date': '2026-03-06', 'time': '14:00'}
+]
+
+# Basit login (demo)
+USER = {'username': 'demo', 'password': 'demo123'}
+
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == USER['username'] and password == USER['password']:
+            return redirect(url_for('panel'))
+        else:
+            error = "❌ Kullanıcı adı veya şifre yanlış!"
+    return render_template_string(LOGIN_HTML, error=error)
+
+@app.route('/panel', methods=['GET', 'POST'])
+def panel():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        date = request.form.get('date')
+        time = request.form.get('time')
+        if name and date and time:
+            appointments.append({'name': name, 'date': date, 'time': time})
+    return render_template_string(PANEL_HTML, appointments=appointments)
+
+# HTML Templates
+LOGIN_HTML = """
+<!doctype html>
+<html>
+<head>
+<title>💻 Demo Randevu Paneli</title>
+<style>
+body {font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; display:flex; justify-content:center; align-items:center; height:100vh; }
+form {background:#2c2c3e; padding:20px; border-radius:10px; box-shadow:0 0 10px #000;}
+input {padding:8px; margin:5px 0; border-radius:5px; border:none;}
+input[type=submit]{background:#4caf50; color:white; cursor:pointer; transition:0.3s;}
+input[type=submit]:hover{background:#45a049;}
+p{animation: blink 1.2s infinite;}
+@keyframes blink {0%,50%,100%{opacity:1;}25%,75%{opacity:0;}}
+</style>
+</head>
+<body>
+<div>
+<h2>🔑 Randevu Paneli Demo Girişi</h2>
+{% if error %}<p>{{ error }}</p>{% endif %}
+<form method="post">
+  👤 Kullanıcı Adı: <input type="text" name="username"><br>
+  🔒 Şifre: <input type="password" name="password"><br>
+  <input type="submit" value="Giriş">
+</form>
+</div>
+</body>
+</html>
+"""
+
+PANEL_HTML = """
+<!doctype html>
+<html>
+<head>
+<title>📅 Randevu Paneli</title>
+<style>
+body {font-family: Arial, sans-serif; background:#12121f; color:#fff; padding:20px;}
+h2,h3{color:#4caf50; text-shadow: 1px 1px 3px #000;}
+table {border-collapse: collapse; width: 100%; margin-bottom:20px; animation: fadein 1s;}
+th,td {border:1px solid #444; padding:10px; text-align:left;}
+th {background:#4caf50;}
+tr:hover {background:#333;}
+input {padding:8px; margin:5px 0; border-radius:5px; border:none;}
+input[type=submit]{background:#2196f3; color:white; cursor:pointer; transition:0.3s;}
+input[type=submit]:hover{background:#0b7dda;}
+@keyframes fadein {from{opacity:0;} to{opacity:1;}}
+</style>
+</head>
+<body>
+<h2>📅 Randevu Paneli Demo</h2>
+<h3>📋 Mevcut Randevular</h3>
+<table>
+<tr><th>İsim</th><th>Tarih</th><th>Saat</th></tr>
+{% for a in appointments %}
+<tr>
+<td>{{ a.name }}</td>
+<td>{{ a.date }}</td>
+<td>{{ a.time }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>➕ Yeni Randevu Ekle</h3>
+<form method="post">
+  👤 İsim: <input type="text" name="name" required><br>
+  📅 Tarih: <input type="date" name="date" required><br>
+  ⏰ Saat: <input type="time" name="time" required><br>
+  <input type="submit" value="Ekle">
+</form>
+</body>
+</html>
+"""
+
+if __name__ == '__main__':
+    app.run(debug=True)
